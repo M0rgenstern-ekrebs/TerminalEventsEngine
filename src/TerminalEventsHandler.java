@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.util.EnumSet;
+import static lib_ekrebs.defines.ECMA_48.ECMA_SGR_codes.*;
 
 import org.jline.terminal.*;
 import org.jline.utils.NonBlockingReader;
@@ -176,7 +177,7 @@ public class TerminalEventsHandler {
 			case 'D' -> "LEFT";
 			default  -> "ERROR";
 		};
-		System.out.print("\033[2K \r\tKey Arrow: '" + key + "'");
+		System.out.print("\033[2K \r\tKey Arrow: '" +YELLOW+ key +RESET+ "'");
 	}
 
 
@@ -193,15 +194,15 @@ public class TerminalEventsHandler {
 			{
 				if (c >= 32 && c <= 126)
 				{
-					System.out.println("\033[2K \r\tKey CHAR: '" + (char) c + "'");
+					System.out.println("\033[2K \r\tKey CHAR: '" +YELLOW+ (char) c +RESET+ "'");
 				}
 				else if (c >= 1 && c <= 26)
 				{
 					char ctrl = (char) ('A' + c - 1);
-					System.out.println("\033[2K \r\tKey CTRL+" + ctrl);
+					System.out.println("\033[2K \r\tKey "+YELLOW+"CTRL"+RESET+"+" + ctrl);
 				}
 				else		
-					System.out.println("\033[2K \r\tKey CODE: " + c);
+					System.out.println("\033[2K \r\tKey CODE: " +MAGENTA+ c +RESET);
 			}
 		}
 		return;
@@ -209,11 +210,19 @@ public class TerminalEventsHandler {
 
 	static void printMouseEvent(String encoding, MouseEvent me)
 	{
+		String MouseButton;
 
-		System.out.printf("\033[2K \r\t"+"%sMouse  "+"(%10s  "+"%-10s)  "+"(%3d,%3d)",
+		MouseButton = switch (""+me.getButton())
+		{
+			case "Button1"   ->  "LeftClick";
+			case "Button2"   ->  "MiddleClick";
+			case "Button3"   ->  "RightClick";
+			default  -> ""+me.getButton();
+		};
+		System.out.printf("\033[2K \r\t"+"%sMouse  ("+YELLOW+"%10s  "+BLUE+"%-10s"+RESET+")  "+"("+RED+"%3d"+RESET+","+GREEN+"%3d"+RESET+")",
 			encoding,
 			""+me.getType(),
-			""+me.getButton(),
+			MouseButton,
 			me.getX(),
 			me.getY() 
 		);
