@@ -125,7 +125,7 @@ public class TerminalEventsHandler {
 			}
 			else if (Character.isLetter(next) || next == '~') // Unknown sequence ?
 			{
-				System.out.println("Unknown CSI: ESC[" + csi);
+				System.out.println("Unknown CSI: ESC[" +MAGENTA +csi +RESET);
 				return;
 			}
 		}
@@ -133,7 +133,7 @@ public class TerminalEventsHandler {
 
 	static void handleSGR(Terminal terminal, NonBlockingReader reader) throws IOException
 	{
-		MouseEvent me = terminal.readMouseEvent();
+		MouseEvent me = parseSGRMouse(reader);
 		if (me != null)
 			printMouseEvent("SGR", me);
 	}
@@ -144,6 +144,41 @@ public class TerminalEventsHandler {
 		if (me != null)
 			printMouseEvent("X10/Legacy", me);
 	}
+
+	private static MouseEvent parseSGRMouse(NonBlockingReader reader) throws IOException {
+		int buttonRaw = reader.read() - 32;
+		int x1 = reader.read() - 32; int x2 = reader.read() - 32;
+		int y1 = reader.read() - 32; int y2 = reader.read() - 32; 
+		int eventRaw = reader.read() - 32;
+		
+		int x = x1 + (x2 << 6);
+		int y = y1 + (y2 << 6);
+		
+		// Button (low 2 bits)
+		MouseEvent.Button button = switch(buttonRaw & 3) {
+			case 0 -> MouseEvent.Button.NoButton;
+			case 1 -> MouseEvent.Button.Button1;
+			case 2 -> MouseEvent.Button.Button2;
+			case 3 -> MouseEvent.Button.Button3;
+			default -> MouseEvent.Button.NoButton;
+		};
+		
+		// Type: distinguish Dragged vs Moved
+		MouseEvent.Type type = switch(eventRaw) {
+			case 0 -> MouseEvent.Type.Pressed;
+			case 1 -> MouseEvent.Type.Released;
+			default -> (buttonRaw & 3) != 0 ? MouseEvent.Type.Dragged : MouseEvent.Type.Moved;
+		};
+		
+		EnumSet<MouseEvent.Modifier> modifiers = EnumSet.noneOf(MouseEvent.Modifier.class);
+		if ((buttonRaw & 4) != 0) modifiers.add(MouseEvent.Modifier.Shift);
+		if ((buttonRaw & 2) != 0) modifiers.add(MouseEvent.Modifier.Alt);
+		if ((buttonRaw & 1) != 0) modifiers.add(MouseEvent.Modifier.Control);
+		
+		return new MouseEvent(type, button, modifiers, x, y);
+	}
+
+
 
 	static void skipPaste(NonBlockingReader reader) throws IOException
 	{
@@ -194,15 +229,15 @@ public class TerminalEventsHandler {
 			{
 				if (c >= 32 && c <= 126)
 				{
-					System.out.println("\033[2K \r\tKey CHAR: '" +YELLOW+ (char) c +RESET+ "'");
+					System.out.println("\033[2K \r\tKey CHAR: '" +YELLOW +(char) c +RESET +"'");
 				}
 				else if (c >= 1 && c <= 26)
 				{
 					char ctrl = (char) ('A' + c - 1);
-					System.out.println("\033[2K \r\tKey "+YELLOW+"CTRL"+RESET+"+" + ctrl);
+					System.out.println("\033[2K \r\tKey " +YELLOW +"CTRL" +RESET +"+" +ctrl);
 				}
 				else		
-					System.out.println("\033[2K \r\tKey CODE: " +MAGENTA+ c +RESET);
+					System.out.println("\033[2K \r\tKey CODE: " +MAGENTA +c +RESET);
 			}
 		}
 		return;
@@ -219,12 +254,12 @@ public class TerminalEventsHandler {
 			case "Button3"   ->  "RightClick";
 			default  -> ""+me.getButton();
 		};
-		System.out.printf("\033[2K \r\t"+"%sMouse  ("+YELLOW+"%10s  "+BLUE+"%-10s"+RESET+")  "+"("+RED+"%3d"+RESET+","+GREEN+"%3d"+RESET+")",
+		System.out.printf("\n\033[2K \r\t" +"%sMouse  ("
+			+YELLOW +"%10s  " +BLUE +"%-10s" +RESET +")  " 
+			+"(" +RED +"%3d" +RESET +"," +GREEN +"%3d" +RESET+")",
 			encoding,
-			""+me.getType(),
-			MouseButton,
-			me.getX(),
-			me.getY() 
+			""+me.getType(), MouseButton,
+			me.getX(), me.getY() 
 		);
 	}
 }
