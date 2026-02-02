@@ -77,9 +77,12 @@ public class TerminalEventsHandler {
 	{
 			//ESC
 			int next = 0;
+
+		while (true)
+		{
 			next = reader.read();
 			if (next == -1)
-				return;
+				continue;
 			if (next == '[') // ESC + [ = CSI
 			{
 				handleCSI(terminal, reader, csi_buffer);
@@ -90,6 +93,7 @@ public class TerminalEventsHandler {
 				printkeyAltEvent(next);
 				return;
 			}
+		}
 	}
 
 	static void handleCSI(Terminal terminal, NonBlockingReader reader, StringBuilder csi) throws IOException
@@ -101,7 +105,7 @@ public class TerminalEventsHandler {
 		{
 			next = reader.read();
 			if (next == -1)
-				return;
+				continue;
 			csi.append((char) next);
 			if (csi.length() == 1 && next >= 'A' && next <= 'D') // CSI + [A-D] = ArrowKey
 			{
