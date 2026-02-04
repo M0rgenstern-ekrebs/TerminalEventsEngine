@@ -1,5 +1,9 @@
 package tui.handler;
 
-public class KeyHandler {
-	
+import tui.event.KeyEvent;
+
+@FunctionalInterface
+public interface KeyHandler {
+    void onKey(KeyEvent event);
 }
+

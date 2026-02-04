@@ -1,5 +1,11 @@
 package tui.event;
 
-public class MouseButton {
-	
+public enum MouseButton {
+    LEFT,
+    MIDDLE,
+    RIGHT,
+    BUTTON4,
+    BUTTON5,
+    NONE
 }
+

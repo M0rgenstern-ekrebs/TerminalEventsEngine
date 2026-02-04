@@ -1,5 +1,8 @@
 package tui.handler;
 
-public class MouseHandler {
-	
+import tui.event.MouseEvent;
+
+@FunctionalInterface
+public interface MouseHandler {
+    void onMouse(MouseEvent event);
 }
